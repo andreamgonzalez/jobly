@@ -213,20 +213,35 @@ class User {
   }
 
 
-  /** Apply to given job; returns job id. */
+  /** Apply for job: update db; returns undefined
+   * 
+   *  takes username and jobId arguments
+   */
 
-  static async apply(username, id) {
+  static async apply(username, jobId) {
+    const checkJob = await db.query(
+      `SELECT id
+       FROM jobs
+       WHERE id = $1`, [jobId]);
+    const job = checkJob.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${jobId}`);
+
+    const checkUser = await db.query(
+      `SELECT username
+       FROM users
+       WHERE username = $1`, [username]);
+    const user = checkUser.rows[0];
+
+    if (!user) throw new NotFoundError(`No user: ${username}`);
+
     let result = await db.query(
           `INSERT INTO applications
            (username, id)
            VALUES ($1, $2)
            RETURNING id`,
-          [username, id],
+          [username, jobId],
     );
-    const applied = result.rows[0];
-
-    if (!user) throw new NotFoundError(`No user: ${username}`);
-
   }
     
 }

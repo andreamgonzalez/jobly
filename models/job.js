@@ -9,13 +9,13 @@ const { sqlForPartialUpdate, sqlJobsFilter } = require("../helpers/sql");
 class Job {
   /** Create a job (from data), update db, return new job data.
    *
-   * data should be {title, salary, equity, company_handle }
+   * data should be {title, salary, equity, coHandle }
    *
-   * Returns { title, salary, equity, company_handle }
+   * Returns { title, salary, equity, coHandle }
    *
    * */
 
-  static async create({ title, salary, equity, company_handle }) {
+  static async create(data) {
 
     const result = await db.query(
           `INSERT INTO jobs
@@ -23,10 +23,10 @@ class Job {
            VALUES ($1, $2, $3, $4)
            RETURNING id, title, salary, equity, company_handle AS "coHandle"`,
         [
-          title,
-          salary,
-          equity,
-          company_handle,
+          data.title,
+          data.salary,
+          data.equity,
+          data.coHandle,
         ],
     );
     const job = result.rows[0];
@@ -48,8 +48,8 @@ class Job {
                   j.title,
                   j.salary,
                   j.equity,
-                  j.company_handle AS "coHandle",
-           FROM jobs j
+                  j.company_handle AS "coHandle"
+            FROM jobs as j
             LEFT JOIN companies AS c 
             ON c.handle = j.company_handle
            ${sqlWhere}
@@ -90,7 +90,7 @@ class Job {
       WHERE handle = $1`, [job.coHandle]);
 
     delete job.coHandle;
-    job.company = companiesRes.row[0];
+    job.company = companiesRes.rows[0];
 
     return job;
   }
@@ -102,7 +102,7 @@ class Job {
    *
    * Data can include: {title, salary, equity}
    *
-   * Returns {id, title, salary, equity, company_handle}
+   * Returns {id, title, salary, equity, coHandle}
    *
    * Throws NotFoundError if not found.
    */
@@ -111,8 +111,7 @@ class Job {
     const { setCols, values } = sqlForPartialUpdate(
         data,
         {
-          // salary: 100000,
-          // equity: 0.041,
+          
         });
     const idVarIdx = "$" + (values.length + 1);
 
@@ -146,7 +145,7 @@ class Job {
         [id]);
     const job = result.rows[0];
 
-    if (!job) throw new NotFoundError(`No company: ${id}`);
+    if (!job) throw new NotFoundError(`No job: ${id}`);
   }
 }
 

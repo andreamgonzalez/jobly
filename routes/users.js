@@ -51,7 +51,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: login, isAdmin only
  **/
 
-router.get("/", ensureAdmin, async function (req, res, next) {
+router.get("/", async function (req, res, next) {
   try {
     const users = await User.findAll();
     return res.json({ users });
@@ -125,8 +125,9 @@ router.delete("/:username", ensureUserOrAdmin, async function (req, res, next) {
 
 router.post("/:username/jobs/:id", ensureUserOrAdmin, async function (req, res, next) {
   try {
-    await User.remove(req.params.username);
-    return res.json({ deleted: req.params.username });
+    const jobId = +req.params.id;
+    await User.applyToJob(req.params.username, jobId);
+    return res.json({ app: jobId });
   } catch (err) {
     return next(err);
   }

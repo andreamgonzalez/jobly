@@ -51,6 +51,7 @@ class Company {
 
   static async findAll(filterObj) {
     //creates WHERE clause - added to select stmt for filtering
+    const {handle} = filterObj;
     const sqlWhere = sqlCompaniesFilter(filterObj ? filterObj : {});
 
     const companiesRes = await db.query(
@@ -63,7 +64,7 @@ class Company {
            ${sqlWhere}
            ORDER BY name`);
     
-    const company = companiesRes.rows[0];
+    const company = companiesRes.rows;
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
@@ -74,10 +75,10 @@ class Company {
               equity,
               company_handle
         FROM jobs
-        WHERE company_handle = $1`, [company_handle]
+        WHERE company_handle = $1`, [handle]
     );
 
-    company.jobs = jobsResp;
+    company.jobs = jobsResp.rows;
 
     return company;
   }
@@ -124,8 +125,8 @@ class Company {
     const { setCols, values } = sqlForPartialUpdate(
         data,
         {
-          // numEmployees: "num_employees",
-          // logoUrl: "logo_url",
+          numEmployees: "num_employees",
+          logoUrl: "logo_url",
         });
     const handleVarIdx = "$" + (values.length + 1);
 

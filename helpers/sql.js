@@ -13,31 +13,32 @@ const { BadRequestError } = require("../expressError");
    * Throws BadRequestError if dataToUpdate object is empty.
    * */
 
-function sqlForPartialUpdate(dataToUpdate, jsToSql) {
-  const keys = Object.keys(dataToUpdate);
-  if (keys.length === 0) throw new BadRequestError("No data");
 
-  // {firstName: 'Aliya', lastName: 'Jones'} => ['"first_name"=$1', '"last_name"=$2']
-  const cols = keys.map((colName, idx) =>
-      `"${jsToSql[colName] || colName}"=$${idx + 1}`,
-  );
-
-  return {
-    setCols: cols.join(", "),
-    values: Object.values(dataToUpdate),
-  };
-}
-
+  function sqlForPartialUpdate(dataToUpdate, jsToSql) {
+    const keys = Object.keys(dataToUpdate);
+    console.log(dataToUpdate);
+    if (keys.length === 0) throw new BadRequestError("No data");
+  
+    // {firstName: 'Aliya', age: 32} => ['"first_name"=$1', '"age"=$2']
+    const cols = keys.map((colName, idx) =>
+        `"${jsToSql[colName] || colName}"=$${idx + 1}`,
+    );
+  
+    return {
+      setCols: cols.join(", "),
+      values: Object.values(dataToUpdate),
+    };
+  }
   /** Takes an object where each k/v pair is an optional param provided from the route for filtering
  *
  * Returns an object that is a SQL query { handle, name, description, numEmployees, logoUrl }, ...]
  * */
 
   function sqlCompaniesFilter(filterObj) {
-    const { name, minEmployees, maxEmployees } = filterObj;
+    const { handle, minEmployees, maxEmployees } = filterObj;
     let whereClause = '';
 
-    if (name || minEmployees || maxEmployees) {
+    if (handle || minEmployees || maxEmployees) {
 
       if (minEmployees && maxEmployees ) {
           if( minEmployees > maxEmployees){
@@ -49,7 +50,7 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
       }
       
       //if name exists create name query else empty string
-      let nameFilter = name ? `name ILIKE '%${name}%'` : '';
+      let nameFilter = handle ? `name ILIKE '%${handle}%'` : '';
 
       //if minEmployees exists create name query else empty string
       let minFilter = minEmployees ? `${nameFilter ? 'AND ' : ''} num_employees >= ${minEmployees}` : '';
